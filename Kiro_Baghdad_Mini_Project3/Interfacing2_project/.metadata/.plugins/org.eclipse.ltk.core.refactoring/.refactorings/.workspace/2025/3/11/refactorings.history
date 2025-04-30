@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete 2 resources" deleteContents="false" description="Delete 2 resources" element1="/Smart_Home/MCAL/uart.c" element2="/Smart_Home/MCAL/uart.h" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="2" stamp="1742083826084"/>
+</session>

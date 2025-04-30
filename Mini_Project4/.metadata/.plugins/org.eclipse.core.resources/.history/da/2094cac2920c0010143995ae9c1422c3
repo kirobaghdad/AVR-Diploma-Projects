@@ -1,0 +1,71 @@
+#include <avr/io.h>
+#include <avr/delay.h>
+#include "ultrasonic.h"
+#include "../HAL/led.h"
+#include "../MCAL/gpio.h"
+#include "../MCAL/icu.h"
+
+volatile uint8 count = 0;
+
+volatile uint16 fallingTime = 0;
+
+static ICU_ConfigType Config_Ptr = {F_CPU_8, RISING};
+
+void Ultrasonic_init(void)
+{
+	GPIO_setupPinDirection(ICU_TRIGGER_PORT, ICU_TRIGGER_PIN, PIN_OUTPUT);
+
+ 	ICU_init(&Config_Ptr);
+
+	ICU_setCallBack(Ultrasonic_edgeProcessing);
+
+}
+
+void Ultrasonic_Trigger(void)
+{
+	GPIO_writePin(ICU_TRIGGER_PORT, ICU_TRIGGER_PIN, LOGIC_HIGH);
+
+	_delay_us(10);
+
+	GPIO_writePin(ICU_TRIGGER_PORT, ICU_TRIGGER_PIN, LOGIC_LOW);
+
+}
+
+ uint16 Ultrasonic_readDistance(void)
+ {
+
+ 	Ultrasonic_Trigger();
+ 	ICU_setEdgeDetectionType(RISING);
+ 	count = 0;
+
+
+ 	while(count < 2);
+
+// 	ICU_deInit();
+
+ 	float timeInSeconds = (fallingTime) * (8 / (16000000 + 0.0)) / 2.0;
+
+ 	return timeInSeconds * 34300;
+ }
+
+
+void Ultrasonic_edgeProcessing(void)
+{
+
+	count++;
+
+	if(count == 1)
+	{
+		ICU_clearTimerValue();
+
+		ICU_setEdgeDetectionType(FALLING);
+	}
+	else if(count == 2)
+	{
+		fallingTime = ICU_getInputCaptureValue();
+	 	ICU_setEdgeDetectionType(RISING);
+	}
+
+
+
+}

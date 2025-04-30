@@ -1,0 +1,131 @@
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/delay.h>
+#include "std_types.h"
+#include "HAL/led.h"
+#include "HAL/buzzer.h"
+#include "HAL/lcd.h"
+#include "HAL/ultrasonic.h"
+
+uint8 alert = 0;
+uint8 prevAlert = 0;
+uint16 prevReading = UINT16_MAX;
+
+void controlLEDs(const uint16 sensorReading)
+{
+	static uint8 flashState = 0;
+
+	if(sensorReading <= 5)
+	{
+		// LEDs are flashing
+		if(flashState)
+		{
+			// turn off
+			LED_off(RED);
+			LED_off(GREEN);
+			LED_off(BLUE);
+		}
+		else
+		{
+			LED_on(RED);
+			LED_on(GREEN);
+			LED_on(BLUE);
+		}
+
+		flashState = !flashState;
+	}
+	else if (sensorReading <= 10)
+	{
+		LED_on(RED);
+		LED_on(GREEN);
+		LED_on(BLUE);
+	}
+	else if(sensorReading <= 15)
+	{
+		LED_on(RED);
+		LED_on(GREEN);
+		LED_off(BLUE);
+	}
+	else if(sensorReading <= 20)
+	{
+		LED_on(RED);
+		LED_off(GREEN);
+		LED_off(BLUE);
+	}
+	else
+	{
+		// turn off
+		LED_off(RED);
+		LED_off(GREEN);
+		LED_off(BLUE);
+	}
+}
+
+void controlBuzzer()
+{
+	if(alert)
+	{
+		Buzzer_on();
+	}
+	else
+	{
+		Buzzer_off();
+	}
+}
+
+void controlLCD(uint16 sensorReading)
+{
+	if(alert)
+	{
+		if(prevAlert == 0)
+		{
+			LCD_clearScreen();
+			LCD_displayString("STOP");
+		}
+	}
+	else if(prevReading != sensorReading)
+	{
+		LCD_clearScreen();
+
+		LCD_displayString("Distance= ");
+		LCD_intgerToString(sensorReading);
+	}
+
+}
+
+
+
+int main(void)
+{
+	uint16 sensorReading = 0;
+
+	sei();
+
+
+	LEDS_init();
+	Buzzer_init();
+	LCD_init();
+
+	Ultrasonic_init();
+
+
+	_delay_ms(10);
+
+	while(1)
+	{
+		sensorReading = Ultrasonic_readDistance();
+
+
+		alert = sensorReading <= 5;
+
+//		controlLEDs(sensorReading);
+//		controlBuzzer(sensorReading);
+		controlLCD(sensorReading);
+
+		prevReading = sensorReading;
+
+		_delay_ms(15);
+	}
+
+	return 0;
+}

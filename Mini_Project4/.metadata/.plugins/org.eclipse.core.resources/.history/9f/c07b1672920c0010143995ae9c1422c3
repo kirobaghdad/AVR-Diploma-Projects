@@ -1,0 +1,23 @@
+#ifndef _H_ULTRASONIC
+#define _H_ULTRASONIC
+
+#include "../std_types.h"
+#include "../MCAL/gpio.h"
+
+#define ICU_ECHO_PORT PORTD_ID
+#define ICU_ECHO_PIN  PIN6_ID
+
+#define ICU_TRIGGER_PORT PORTD_ID
+#define ICU_TRIGGER_PIN  PIN7_ID
+
+typedef struct {
+    uint8 count;        // Edge detection count
+    uint16 fallingTime; // Time captured on falling edge
+} UltrasonicConfig;
+
+void Ultrasonic_init(UltrasonicConfig *config);
+void Ultrasonic_Trigger(void);
+uint16 Ultrasonic_readDistance(UltrasonicConfig *config);
+void Ultrasonic_edgeProcessing(UltrasonicConfig *config);
+
+#endif
